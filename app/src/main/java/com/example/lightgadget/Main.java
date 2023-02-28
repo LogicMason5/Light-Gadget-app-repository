@@ -82,23 +82,14 @@ public class Main extends AppCompatActivity {
     public MyBTclass bt = new MyBTclass();
 
     // Variables related to the color picker.
-    int colorId;
     String[] groupIds = {"color_picker", "color_sample1", "add2", "color_sample2", "add3", "color_sample3"}; //, "joystick"};
     String[][] prohibitedIds = {{"color_sample2", "add3", "color_sample3"}, {"add2", "color_sample3"}, {"add2", "add3"}};
     
     // Variables to adjust the background according the bright.
-    int R_day_start = 128;
-    int G_day_start = 222;
-    int B_day_start = 234;
-    int R_day_end = 251;
-    int G_day_end = 251;
-    int B_day_end = 132;
-    int R_night_start = 3;
-    int G_night_start = 8;
-    int B_night_start = 30;
-    int R_night_end = 42;
-    int G_night_end = 53;
-    int B_night_end = 94;
+    int[] day_0 = {128, 222, 234};
+    int[] day_f = {251, 251, 132};
+    int[] night_0 = {3, 8, 30};
+    int[] night_f = {42, 53, 94};
 
     // Variables related to the data frame.
     int palette = 0;
@@ -204,7 +195,7 @@ public class Main extends AppCompatActivity {
                             int currId = v.getId();
                             LottieAnimationView curr_lav = findViewById(currId);
                             targets[currId] = true;
-                            powerOff();
+                            //powerOff();
                             curr_lav.pauseAnimation();
                             curr_lav.setProgress(minLottie);
                             return false;
@@ -236,7 +227,7 @@ public class Main extends AppCompatActivity {
         colorPicker.setColorSelectionListener(new SimpleColorSelectionListener() {
             @Override
             public void onColorSelected(int color) {
-                switch (colorId) {
+                switch (flagNum) {
                     case 1:
                         color1.setColorFilter(color);
                         break;
@@ -251,13 +242,13 @@ public class Main extends AppCompatActivity {
         });
 
         // Initialize the color picker setup.
-        colorId = 1;
+        flagNum = 1;
         color1 = findViewById(R.id.color_sample1);
         colorPicker.setColor(color1.getSolidColor());
         color1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                colorId = 1;
+                flagNum = 1;
                 colorPicker.setColor(color1.getSolidColor());
             }
         });
@@ -266,7 +257,7 @@ public class Main extends AppCompatActivity {
         color2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                colorId = 2;
+                flagNum = 2;
                 colorPicker.setColor(color2.getSolidColor());
             }
         });
@@ -282,8 +273,7 @@ public class Main extends AppCompatActivity {
                     add2.startAnimation(fadeIn);
                     add2.setVisibility(View.VISIBLE);
 
-                    if (colorId == 2) {
-                        colorId = 1;
+                    if (flagNum == 2) {
                         colorPicker.setColor(color1.getSolidColor());
                     }
                 }
@@ -295,7 +285,7 @@ public class Main extends AppCompatActivity {
         color3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                colorId = 3;
+                flagNum = 3;
                 colorPicker.setColor(color3.getSolidColor());
             }
         });
@@ -308,8 +298,7 @@ public class Main extends AppCompatActivity {
                 add3.startAnimation(fadeIn);
                 add3.setVisibility(View.VISIBLE);
 
-                if (colorId == 3) {
-                    colorId = 2;
+                if (flagNum == 3) {
                     colorPicker.setColor(color2.getSolidColor());
                 }
                 return false;
@@ -321,7 +310,6 @@ public class Main extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 flagNum = 2;
-                colorId = 2;
                 add2.startAnimation(fadeOut);
                 add2.setVisibility(View.INVISIBLE);
                 add3.startAnimation(fadeIn);
@@ -336,7 +324,6 @@ public class Main extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 flagNum = 3;
-                colorId = 3;
                 add3.startAnimation(fadeOut);
                 add3.setVisibility(View.INVISIBLE);
                 color3.startAnimation(fadeIn);
@@ -368,8 +355,8 @@ public class Main extends AppCompatActivity {
             public void onProgressChanged(SeekArc seekArc, int i, boolean b) {
                 GradientDrawable gd = new GradientDrawable(
                         GradientDrawable.Orientation.TL_BR,
-                        new int[] {Color.rgb(R_night_end + (R_day_end - R_night_end)*i/max_brightArc_val,G_night_end + (G_day_end - G_night_end)*i/max_brightArc_val,B_night_end + (B_day_end - B_night_end)*i/max_brightArc_val),
-                                Color.rgb(R_night_start + (R_day_start - R_night_start)*i/max_brightArc_val,G_night_start + (G_day_start - G_night_start)*i/max_brightArc_val,B_night_start + (B_day_start - B_night_start)*i/max_brightArc_val)});
+                        new int[] {Color.rgb(night_f[0] + (day_f[0] - night_f[0])*i/max_brightArc_val,night_f[1] + (day_f[1] - night_f[1])*i/max_brightArc_val,night_f[2] + (day_f[2] - night_f[2])*i/max_brightArc_val),
+                                Color.rgb(night_0[0] + (day_0[0] - night_0[0])*i/max_brightArc_val,night_0[1] + (day_0[1] - night_0[1])*i/max_brightArc_val,night_0[2] + (day_0[2] - night_0[2])*i/max_brightArc_val)});
                 gd.setCornerRadius(0f);
                 layout.setBackgroundDrawable(gd);
             }
