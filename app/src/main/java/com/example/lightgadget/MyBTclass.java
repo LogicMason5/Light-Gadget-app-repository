@@ -118,6 +118,7 @@ public class MyBTclass extends Thread {
 
     // Send data by BT.
     public void write(String input, Context context) {
+        input = input + "#";
         if (bluetoothSocket != null) {
             if (bluetoothSocket.isConnected()) {
                 try {

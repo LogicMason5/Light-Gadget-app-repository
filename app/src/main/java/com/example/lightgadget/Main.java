@@ -75,14 +75,13 @@ public class Main extends AppCompatActivity {
     HSLColorPicker colorPicker;
     JellyToggleButton toggle;
     BoomMenuButton stripsMenu;
-    ToggleSwitchButton joystick;
 
     Animation fadeIn, fadeOut, rotate;
 
     public MyBTclass bt = new MyBTclass();
 
     // Variables related to the color picker.
-    String[] groupIds = {"color_picker", "color_sample1", "add2", "color_sample2", "add3", "color_sample3"}; //, "joystick"};
+    String[] groupIds = {"color_picker", "color_sample1", "add2", "color_sample2", "add3", "color_sample3"};
     String[][] prohibitedIds = {{"color_sample2", "add3", "color_sample3"}, {"add2", "color_sample3"}, {"add2", "add3"}};
     
     // Variables to adjust the background according the bright.
@@ -95,13 +94,11 @@ public class Main extends AppCompatActivity {
     int palette = 0;
     int bright = 50;
     int num = 0;
-    int maxNum = 10;
     int rotation = 0;
     int flagNum = 1;
     float speed = 0;
-    float maxSpeed = 100;
     Boolean[] targets;
-    float minLottie = 0.45F;
+    float minProgress = 0.45F;
 
     // Wheel view icons.
     final int[] items = {R.drawable.rand, R.drawable.rainbow, R.drawable.fire, R.drawable.water_wave, R.drawable.leaves, R.drawable.flamingo, R.drawable.police, R.drawable.color_ball, R.drawable.palm, R.drawable.sol};
@@ -171,8 +168,8 @@ public class Main extends AppCompatActivity {
                     //            lav.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
                     lav.setLayoutParams(new RelativeLayout.LayoutParams(square_width * dps, square_width * dps));
                     lav.setPadding(5 * dps, 2 * dps, 5 * dps, 0);
-                    lav.setProgress(minLottie);
-                    lav.setMinProgress(minLottie);
+                    lav.setProgress(minProgress);
+                    lav.setMinProgress(minProgress);
                     lav.setAnimation(R.raw.lottie_light_bulb);
                     lav.setId(++cnt);
                     lav.setOnClickListener(new View.OnClickListener() {
@@ -185,7 +182,7 @@ public class Main extends AppCompatActivity {
                                 curr_lav.playAnimation();
                             } else {
                                 curr_lav.pauseAnimation();
-                                curr_lav.setProgress(minLottie);
+                                curr_lav.setProgress(minProgress);
                             }
                         }
                     });
@@ -195,9 +192,9 @@ public class Main extends AppCompatActivity {
                             int currId = v.getId();
                             LottieAnimationView curr_lav = findViewById(currId);
                             targets[currId] = true;
-                            //powerOff();
+                            bt.write(Integer.toString(currId)+";0", getBaseContext());
                             curr_lav.pauseAnimation();
-                            curr_lav.setProgress(minLottie);
+                            curr_lav.setProgress(minProgress);
                             return false;
                         }
                     });
@@ -250,6 +247,7 @@ public class Main extends AppCompatActivity {
             public void onClick(View v) {
                 flagNum = 1;
                 colorPicker.setColor(color1.getSolidColor());
+                sendState();
             }
         });
 
@@ -259,6 +257,7 @@ public class Main extends AppCompatActivity {
             public void onClick(View v) {
                 flagNum = 2;
                 colorPicker.setColor(color2.getSolidColor());
+                sendState();
             }
         });
         color2.setOnLongClickListener(new View.OnLongClickListener() {
@@ -272,6 +271,7 @@ public class Main extends AppCompatActivity {
                     color2.setVisibility(View.INVISIBLE);
                     add2.startAnimation(fadeIn);
                     add2.setVisibility(View.VISIBLE);
+                    sendState();
 
                     if (flagNum == 2) {
                         colorPicker.setColor(color1.getSolidColor());
@@ -287,6 +287,7 @@ public class Main extends AppCompatActivity {
             public void onClick(View v) {
                 flagNum = 3;
                 colorPicker.setColor(color3.getSolidColor());
+                sendState();
             }
         });
         color3.setOnLongClickListener(new View.OnLongClickListener() {
@@ -297,6 +298,7 @@ public class Main extends AppCompatActivity {
                 color3.setVisibility(View.INVISIBLE);
                 add3.startAnimation(fadeIn);
                 add3.setVisibility(View.VISIBLE);
+                sendState();
 
                 if (flagNum == 3) {
                     colorPicker.setColor(color2.getSolidColor());
@@ -316,6 +318,7 @@ public class Main extends AppCompatActivity {
                 add3.setVisibility(View.VISIBLE);
                 color2.startAnimation(fadeIn);
                 color2.setVisibility(View.VISIBLE);
+                sendState();
             }
         });
 
@@ -328,6 +331,7 @@ public class Main extends AppCompatActivity {
                 add3.setVisibility(View.INVISIBLE);
                 color3.startAnimation(fadeIn);
                 color3.setVisibility(View.VISIBLE);
+                sendState();
             }
         });
 
@@ -335,14 +339,18 @@ public class Main extends AppCompatActivity {
         numBar = findViewById(R.id.ledsNum);
         numBar.getConfigBuilder()
                 .min(0)
-                .max(maxNum)
-                .progress(1)
+                .max(100)
+                .progress(0)
+                .sectionCount(10)
                 .sectionTextPosition(BubbleSeekBar.TextPosition.BELOW_SECTION_MARK)
                 .build();
 
         numBar.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                num = numBar.getProgress();
+                speedTv.setText(Integer.toString(num));
+                sendState();
                 return false;
             }
         });
@@ -359,6 +367,8 @@ public class Main extends AppCompatActivity {
                                 Color.rgb(night_0[0] + (day_0[0] - night_0[0])*i/max_brightArc_val,night_0[1] + (day_0[1] - night_0[1])*i/max_brightArc_val,night_0[2] + (day_0[2] - night_0[2])*i/max_brightArc_val)});
                 gd.setCornerRadius(0f);
                 layout.setBackgroundDrawable(gd);
+                bright = 100*i/max_brightArc_val;
+                sendState();
             }
 
             @Override
@@ -422,7 +432,9 @@ public class Main extends AppCompatActivity {
             @Override
             public void onWheelItemClick(WheelView parent, int position, boolean isSelected) {
                 // The position in the adapter and whether it is closest to the selection angle.
-                Toast.makeText(getApplicationContext(), "Item position: " + position, Toast.LENGTH_SHORT).show();
+                // Toast.makeText(getApplicationContext(), "Item position: " + position, Toast.LENGTH_SHORT).show();
+                palette = position;
+                sendState();
             }
         });
 
@@ -433,6 +445,7 @@ public class Main extends AppCompatActivity {
             public boolean onTouch(View v, MotionEvent event) {
                 speed = speedArc.getProgress();
                 speedometer.setSpeedAt(speed);
+                sendState();
                 return false;
             }
         });
@@ -464,20 +477,6 @@ public class Main extends AppCompatActivity {
 
         // Text view.
         speedTv = findViewById(R.id.speed_val);
-
-//        // Define the switch between custom colors and default palettes.
-//        joystick = findViewById(R.id.joystick);
-//        joystick.setOnTriggerListener(new ToggleSwitchButton.OnTriggerListener() {
-//            @Override
-//            public void toggledUp() {
-//
-//            }
-//
-//            @Override
-//            public void toggledDown() {
-//
-//            }
-//        });
     }
 
     public static void RgbToHsl (int red, int green, int blue, float hsl[]) {
@@ -541,27 +540,15 @@ public class Main extends AppCompatActivity {
         }
     }
 
-    private void parseState(String state) {
-        String[] stateSplit = state.split(";");
-        palette = 0;
-        bright = 50;
-        num = 0;
-        maxNum = 10;
-        rotation = 0;
-        flagNum = 1;
-        speed = 0;
-        maxSpeed = 100;
-    }
-
     private void sendState() {
         for (int i = 0; i < targets.length; i++) {
             if (targets[i]) {
-                bt.write(Integer.toString(i)+
-                        Integer.toString(palette)+
-                        Integer.toString(bright)+
-                        Integer.toString(num)+
-                        Integer.toString(rotation)+
-                        Integer.toString((int) speed)+
+                bt.write(Integer.toString(i)+";"+
+                        Integer.toString(palette)+";"+
+                        Integer.toString(bright)+";"+
+                        Integer.toString(num)+";"+
+                        Integer.toString(rotation)+";"+
+                        Integer.toString((int) speed)+";"+
                         Integer.toString(flagNum),
                         getBaseContext());
             }
