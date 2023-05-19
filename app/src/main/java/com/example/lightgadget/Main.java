@@ -91,13 +91,13 @@ public class Main extends AppCompatActivity {
     int[] night_f = {42, 53, 94};
 
     // Variables related to the data frame.
-    int palette = 0;
-    int bright = 50;
+    Boolean[] targets; // Bool array to en/disable the target led strips.
     int num = 0;
-    int rotation = 0;
+    int bright = 50;
+    int palette = 0;
     int flagNum = 1;
+    int rotation = 0;
     float speed = 0;
-    Boolean[] targets;
     float minProgress = 0.45F;
 
     // Wheel view icons.
@@ -137,14 +137,14 @@ public class Main extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, 100);
         }
 
-        String[] stripsName = {"one", "onetwo", "one", "onetwo", "one", "onetwo"};
-        if (true) {
+//        String[] stripsName = {"one", "onetwo", "one", "onetwo", "one", "onetwo"};
+//        if (true) {
         // Check the state of the strips (if BT is already connected).
-//        if (bt.getBTSocket() != null) {
-//            sendState("1");
-//            String answer = bt.read(getBaseContext());
-//            parseState(answer);
-//            String[] stripsName = bt.getNames();
+        if (bt.getBTSocket() != null) {
+            bt.write("0", getBaseContext());
+            String answer = bt.read(getBaseContext());
+            bt.parseStrips(answer);
+            String[] stripsName = bt.getNames();
 
             if (stripsName.length > 0) {
                 // Create a strips selection bar.
@@ -479,7 +479,42 @@ public class Main extends AppCompatActivity {
         speedTv = findViewById(R.id.speed_val);
     }
 
-    public static void RgbToHsl (int red, int green, int blue, float hsl[]) {
+    private void setGroupAnimation(String[] group, Animation animation) {
+        for (String id: group) {
+            int Id = getResources().getIdentifier(id, "id", this.getPackageName());
+            if (!(group == groupIds & Arrays.asList(prohibitedIds[flagNum - 1]).contains(id))) {
+                findViewById(Id).startAnimation(animation);
+            }
+        }
+    }
+
+    private void setGroupVisibility(String[] group, int visibility) {
+        for (String id: group) {
+            int Id = getResources().getIdentifier(id, "id", this.getPackageName());
+            if (!(group == groupIds & Arrays.asList(prohibitedIds[flagNum - 1]).contains(id))) {
+                findViewById(Id).setVisibility(visibility);
+            }
+        }
+    }
+
+    private void sendState() {
+        if (targets != null) {
+            for (int i = 0; i < targets.length; i++) {
+                if (targets[i]) {
+                    bt.write(Integer.toString(i) + ";" +
+                                    Integer.toString(num) + ";" +
+                                    Integer.toString(bright) + ";" +
+                                    Integer.toString(palette) + ";" +
+                                    Integer.toString(flagNum) + ";" +
+                                    Integer.toString(rotation) + ";" +
+                                    Integer.toString((int) speed),
+                            getBaseContext());
+                }
+            }
+        }
+    }
+
+    public static void RGB2HSL (int red, int green, int blue, float hsl[]) {
         float r = (float) red / 255;
         float g = (float) green / 255;
         float b = (float) blue / 255;
@@ -516,42 +551,9 @@ public class Main extends AppCompatActivity {
         hsl[2] = f1;
     }
 
-    public static float[] ColorToHsl(int color) {
+    public static float[] color2HSL(int color) {
         float[] hsl = new float[0];
-        RgbToHsl(0xff & color >>> 16, 0xff & color >>> 8, color & 0xff, hsl);
+        RGB2HSL(0xff & color >>> 16, 0xff & color >>> 8, color & 0xff, hsl);
         return hsl;
-    }
-
-    private void setGroupAnimation(String[] group, Animation animation) {
-        for (String id: group) {
-            int Id = getResources().getIdentifier(id, "id", this.getPackageName());
-            if (!(group == groupIds & Arrays.asList(prohibitedIds[flagNum - 1]).contains(id))) {
-                findViewById(Id).startAnimation(animation);
-            }
-        }
-    }
-
-    private void setGroupVisibility(String[] group, int visibility) {
-        for (String id: group) {
-            int Id = getResources().getIdentifier(id, "id", this.getPackageName());
-            if (!(group == groupIds & Arrays.asList(prohibitedIds[flagNum - 1]).contains(id))) {
-                findViewById(Id).setVisibility(visibility);
-            }
-        }
-    }
-
-    private void sendState() {
-        for (int i = 0; i < targets.length; i++) {
-            if (targets[i]) {
-                bt.write(Integer.toString(i)+";"+
-                        Integer.toString(palette)+";"+
-                        Integer.toString(bright)+";"+
-                        Integer.toString(num)+";"+
-                        Integer.toString(rotation)+";"+
-                        Integer.toString((int) speed)+";"+
-                        Integer.toString(flagNum),
-                        getBaseContext());
-            }
-        }
     }
 }

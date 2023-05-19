@@ -118,7 +118,10 @@ public class MyBTclass extends Thread {
 
     // Send data by BT.
     public void write(String input, Context context) {
+        // Add the "#" terminator to the payload.
         input = input + "#";
+
+        // Check if there is an available BT connection and tryu to send the message.
         if (bluetoothSocket != null) {
             if (bluetoothSocket.isConnected()) {
                 try {
@@ -150,7 +153,7 @@ public class MyBTclass extends Thread {
                     try {
                         b = (byte) inputStream.read();
                         c = (char) b;
-                        if (c == '$') break;
+                        if (c == '#') break;
                         else readMessage += c;
                     }
                     catch (IOException e) {
@@ -170,10 +173,11 @@ public class MyBTclass extends Thread {
 
     // Parse the received strips info.
     public void parseStrips(@NonNull String strips) {
+        strips = strips.replace("#","");
         String[] stripsSplit = strips.split(";");
-        stripsName = new String[stripsSplit.length-1];
-        stripsNum = new int[stripsSplit.length-1];
-        for (int i=0; i<stripsSplit.length-1; i++) {
+        stripsName = new String[stripsSplit.length];
+        stripsNum = new int[stripsSplit.length];
+        for (int i=0; i<stripsSplit.length; i++) {
             String[] strip = stripsSplit[i].split(":");
             stripsName[i] = strip[0];
             stripsNum[i] = Integer.parseInt(strip[1]);

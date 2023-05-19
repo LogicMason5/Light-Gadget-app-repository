@@ -58,6 +58,10 @@ public class Dashboard extends AppCompatActivity {
 
         relativeLayout = findViewById(R.id.layout_Dashboard);
 
+        if (lastTv != null) {
+            lastTv.setTypeface(null, Typeface.BOLD);
+        }
+
         // GUI definitions.
         refreshBtn = findViewById(R.id.refresh);
         eraseBtn = findViewById(R.id.erase);
@@ -141,6 +145,7 @@ public class Dashboard extends AppCompatActivity {
         Intent intent = new Intent(Dashboard.this, Main.class);
         startActivity(intent);
         overridePendingTransition(R.anim.down_animation, R.anim.up_animation);
+        finish();
     }
 
     // Function to refresh the paired devices.
@@ -174,13 +179,19 @@ public class Dashboard extends AppCompatActivity {
     // List item click callback.
     final AdapterView.OnItemClickListener mDeviceClickListener = new AdapterView.OnItemClickListener() {
         public void onItemClick(AdapterView av, View v, int arg2, long arg3) {
-            if (lastTv != null) {
-                lastTv = (TextView) v; // Update lastTv.
-                lastTv.setTypeface(null, Typeface.BOLD);
-            }
             // Get MAC adress from device (last 17 characters of the item from the listView).
             String info = ((TextView) v).getText().toString();
-            String name = info.substring(0, info.length() - 17);
+            String name = info.substring(0, info.length() - 20);
+            Toast.makeText(getBaseContext(), "Connecting to " + name, Toast.LENGTH_SHORT).show();
+            if (lastTv == null) {
+                lastTv = (TextView) v;
+                lastTv.setTypeface(null, Typeface.BOLD);
+            }
+            else {
+                lastTv.setTypeface(null, Typeface.NORMAL);
+                lastTv = (TextView) v;
+                lastTv.setTypeface(null, Typeface.BOLD);
+            }
             String MAC = info.substring(info.length() - 17);
             logFeedback("Selected device: " + name);
             btConnected = bt.connect(getBaseContext(), bluetoothAdapter, MAC);
