@@ -55,6 +55,7 @@ import com.xw.repo.BubbleSeekBar;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
@@ -97,7 +98,7 @@ public class Main extends AppCompatActivity {
     int palette = 0;
     int flagNum = 1;
     int rotation = 0;
-    float speed = 0;
+    int freq = 0;
     float minProgress = 0.45F;
 
     // Wheel view icons.
@@ -178,6 +179,11 @@ public class Main extends AppCompatActivity {
                             int currId = v.getId();
                             LottieAnimationView curr_lav = findViewById(currId);
                             targets[currId] = !targets[currId];
+                            String s = "";
+                            for (boolean b: targets) {
+                                s += b + ";";
+                            }
+                            Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
                             if (targets[currId]) {
                                 curr_lav.playAnimation();
                             } else {
@@ -247,7 +253,7 @@ public class Main extends AppCompatActivity {
             public void onClick(View v) {
                 flagNum = 1;
                 colorPicker.setColor(color1.getSolidColor());
-                sendState();
+                BTsend("X", "0;" + color1.getSolidColor());
             }
         });
 
@@ -257,7 +263,7 @@ public class Main extends AppCompatActivity {
             public void onClick(View v) {
                 flagNum = 2;
                 colorPicker.setColor(color2.getSolidColor());
-                sendState();
+                BTsend("X", "1;" + color2.getSolidColor());
             }
         });
         color2.setOnLongClickListener(new View.OnLongClickListener() {
@@ -271,7 +277,7 @@ public class Main extends AppCompatActivity {
                     color2.setVisibility(View.INVISIBLE);
                     add2.startAnimation(fadeIn);
                     add2.setVisibility(View.VISIBLE);
-                    sendState();
+                    BTsend("X", "N;1");
 
                     if (flagNum == 2) {
                         colorPicker.setColor(color1.getSolidColor());
@@ -287,7 +293,7 @@ public class Main extends AppCompatActivity {
             public void onClick(View v) {
                 flagNum = 3;
                 colorPicker.setColor(color3.getSolidColor());
-                sendState();
+                BTsend("X", "2;" + color3.getSolidColor());
             }
         });
         color3.setOnLongClickListener(new View.OnLongClickListener() {
@@ -298,7 +304,7 @@ public class Main extends AppCompatActivity {
                 color3.setVisibility(View.INVISIBLE);
                 add3.startAnimation(fadeIn);
                 add3.setVisibility(View.VISIBLE);
-                sendState();
+                BTsend("X", "N;2");
 
                 if (flagNum == 3) {
                     colorPicker.setColor(color2.getSolidColor());
@@ -318,7 +324,7 @@ public class Main extends AppCompatActivity {
                 add3.setVisibility(View.VISIBLE);
                 color2.startAnimation(fadeIn);
                 color2.setVisibility(View.VISIBLE);
-                sendState();
+                BTsend("X", "N;2");
             }
         });
 
@@ -331,7 +337,7 @@ public class Main extends AppCompatActivity {
                 add3.setVisibility(View.INVISIBLE);
                 color3.startAnimation(fadeIn);
                 color3.setVisibility(View.VISIBLE);
-                sendState();
+                BTsend("X", "N;3");
             }
         });
 
@@ -350,7 +356,7 @@ public class Main extends AppCompatActivity {
             public boolean onTouch(View v, MotionEvent event) {
                 num = numBar.getProgress();
                 speedTv.setText(Integer.toString(num));
-                sendState();
+                BTsend("N", Integer.toString(num));
                 return false;
             }
         });
@@ -367,8 +373,8 @@ public class Main extends AppCompatActivity {
                                 Color.rgb(night_0[0] + (day_0[0] - night_0[0])*i/max_brightArc_val,night_0[1] + (day_0[1] - night_0[1])*i/max_brightArc_val,night_0[2] + (day_0[2] - night_0[2])*i/max_brightArc_val)});
                 gd.setCornerRadius(0f);
                 layout.setBackgroundDrawable(gd);
-                bright = 100*i/max_brightArc_val;
-                sendState();
+                bright = (int) Math.floor((float) i*100/ (float) max_brightArc_val);
+                BTsend("B", Integer.toString(bright));
             }
 
             @Override
@@ -434,18 +440,19 @@ public class Main extends AppCompatActivity {
                 // The position in the adapter and whether it is closest to the selection angle.
                 // Toast.makeText(getApplicationContext(), "Item position: " + position, Toast.LENGTH_SHORT).show();
                 palette = position;
-                sendState();
+                BTsend("P", Integer.toString(palette));
             }
         });
 
-        // Circular progress bar for speed.
+        // Circular progress bar for freq.
         speedArc = findViewById(R.id.seekArc);
         speedArc.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                speed = speedArc.getProgress();
-                speedometer.setSpeedAt(speed);
-                sendState();
+                freq = (int) Math.floor(speedArc.getProgress());
+                speedometer.setSpeedAt(freq);
+                bt.write("F;"+ freq, getBaseContext());
+                String answer = bt.read(getBaseContext());
                 return false;
             }
         });
@@ -470,7 +477,7 @@ public class Main extends AppCompatActivity {
         speedometer.setOnSpeedChangeListener(new Function3<Gauge, Boolean, Boolean, Unit>() {
             @Override
             public Unit invoke(Gauge gauge, Boolean aBoolean, Boolean aBoolean2) {
-                speedTv.setText(Float.toString(speed)+" Hz");
+                speedTv.setText(Float.toString(freq)+" Hz");
                 return null;
             }
         });
@@ -497,18 +504,12 @@ public class Main extends AppCompatActivity {
         }
     }
 
-    private void sendState() {
+    private void BTsend(String cmd, String val) {
         if (targets != null) {
             for (int i = 0; i < targets.length; i++) {
                 if (targets[i]) {
-                    bt.write(Integer.toString(i) + ";" +
-                                    Integer.toString(num) + ";" +
-                                    Integer.toString(bright) + ";" +
-                                    Integer.toString(palette) + ";" +
-                                    Integer.toString(flagNum) + ";" +
-                                    Integer.toString(rotation) + ";" +
-                                    Integer.toString((int) speed),
-                            getBaseContext());
+                    bt.write(cmd +";"+ Integer.toString(i) +";"+ val, getBaseContext());
+                    String answer = bt.read(getBaseContext());
                 }
             }
         }

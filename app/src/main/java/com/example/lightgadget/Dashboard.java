@@ -111,6 +111,9 @@ public class Dashboard extends AppCompatActivity {
             public void onClick(View view) {
                 refreshPairedDevices();
                 refreshBtn.startAnimation(refresh_rev);
+                if (bt.getBTSocket() != null) {
+                    bt.disconnect(getBaseContext());
+                }
             }
         });
 

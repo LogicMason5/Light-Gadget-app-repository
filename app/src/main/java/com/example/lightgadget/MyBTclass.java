@@ -113,14 +113,13 @@ public class MyBTclass extends Thread {
         bluetoothSocket = null;
         bluetoothServerSocket = null;
 
+        Toast.makeText(context, "BT disconnected.", Toast.LENGTH_SHORT).show();
+
         return true;
     }
 
     // Send data by BT.
     public void write(String input, Context context) {
-        // Add the "#" terminator to the payload.
-        input = input + "#";
-
         // Check if there is an available BT connection and tryu to send the message.
         if (bluetoothSocket != null) {
             if (bluetoothSocket.isConnected()) {
