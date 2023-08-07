@@ -69,17 +69,12 @@ public class Dashboard extends AppCompatActivity {
         sendBtn = findViewById(R.id.send);
         feedback = findViewById(R.id.feedback);
         feedback.setMovementMethod(new ScrollingMovementMethod());
+        feedback.setText(MyBTclass.log);
         text2Send = findViewById(R.id.to_send);
         devicesList = findViewById(R.id.devices_list);
 
         // Animations
         refresh_rev = AnimationUtils.loadAnimation(this, R.anim.rotate_360);
-
-        // Print the date on the log.
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(" * * dd/MM/yyyy - HH:mm:ss * * ");
-        Date d = Calendar.getInstance().getTime();
-        String timestamp = simpleDateFormat.format(d);
-        feedback.append(timestamp + "\n");
 
         // Create the bluetooth adapter if required.
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -121,10 +116,11 @@ public class Dashboard extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 // Print the date on the log.
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat(" * * dd/MM/yyyy - HH:mm:ss * * ");
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss"); // dd/MM/yyyy - HH:mm:ss
                 Date d = Calendar.getInstance().getTime();
                 String timestamp = simpleDateFormat.format(d);
-                feedback.setText(timestamp);
+                MyBTclass.log = "";
+                logFeedback("Log reset.");
             }
         });
 
@@ -186,35 +182,44 @@ public class Dashboard extends AppCompatActivity {
             String info = ((TextView) v).getText().toString();
             String name = info.substring(0, info.length() - 20);
             Toast.makeText(getBaseContext(), "Connecting to " + name, Toast.LENGTH_SHORT).show();
-            if (lastTv == null) {
-                lastTv = (TextView) v;
-                lastTv.setTypeface(null, Typeface.BOLD);
-            }
-            else {
-                lastTv.setTypeface(null, Typeface.NORMAL);
-                lastTv = (TextView) v;
-                lastTv.setTypeface(null, Typeface.BOLD);
-            }
+
             String MAC = info.substring(info.length() - 17);
             logFeedback("Selected device: " + name);
             btConnected = bt.connect(getBaseContext(), bluetoothAdapter, MAC);
+            logFeedback("btConnected: " + btConnected);
             if (btConnected) {
                 logFeedback("Established connection to "+name);
+
+                // Set device name bold in list.
+                if (lastTv == null) {
+                    lastTv = (TextView) v;
+                    lastTv.setTypeface(null, Typeface.BOLD);
+                }
+                else {
+                    lastTv.setTypeface(null, Typeface.NORMAL);
+                    lastTv = (TextView) v;
+                    lastTv.setTypeface(null, Typeface.BOLD);
+                }
                 bt.write("0", getBaseContext());
                 String answer = bt.read(getBaseContext());
                 logFeedback("Received: " + answer);
                 bt.parseStrips(answer);
             }
             else {
-                logFeedback("ERROR: connecting BLuetooth.");
-                Toast.makeText(getBaseContext(), "ERROR: connecting BLuetooth.", Toast.LENGTH_SHORT).show();
+                logFeedback("ERROR: connecting Bluetooth.");
+                Toast.makeText(getBaseContext(), "ERROR: connecting Bluetooth.", Toast.LENGTH_SHORT).show();
             }
         }
     };
 
     // Append the feedback to its own tv and scrolls to end.
     public void logFeedback(String msg) {
-        feedback.append(">> " + msg + "\n");
+        // Print the date on the log.
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss"); // dd/MM/yyyy - HH:mm:ss
+        Date d = Calendar.getInstance().getTime();
+        String timestamp = simpleDateFormat.format(d);
+        MyBTclass.log += timestamp + "> " + msg + "\n";
+        feedback.setText(MyBTclass.log);
 
         try {
         scrollAmount = feedback.getLayout().getLineTop(feedback.getLineCount()) - feedback.getHeight();

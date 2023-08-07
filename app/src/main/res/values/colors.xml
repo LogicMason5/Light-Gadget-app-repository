@@ -31,4 +31,8 @@
     <color name="color2_dark">#454736</color>
     <color name="purple">#7F00FF</color>
     <color name="transparent">#00000000</color>
+    <color name="speed0">#D5FF3F</color>
+    <color name="speed1">#FFE53F</color>
+    <color name="speed2">#FFA23F</color>
+    <color name="speed3">#FF5C3F</color>
 </resources>

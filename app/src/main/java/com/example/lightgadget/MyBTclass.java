@@ -17,6 +17,9 @@ import androidx.core.app.ActivityCompat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
@@ -31,6 +34,7 @@ public class MyBTclass extends Thread {
     int maxCommandLength = 100;
     static int[] stripsNum;
     static String[] stripsName;
+    static String log = ">> ... \n";
 
     // Connect to a specific MAC adress.
     public boolean connect(Context context, BluetoothAdapter bluetoothAdapter, String MAC) {
@@ -39,7 +43,12 @@ public class MyBTclass extends Thread {
             if (bluetoothSocket != null) disconnect(context);
             if (bluetoothAdapter.isEnabled() && bluetoothSocket == null) { // BluetoothAdapter is ON.
                 // Create a bluetooth device by its MAC adress.
-                BluetoothDevice btDevice = bluetoothAdapter.getRemoteDevice(MAC);
+                BluetoothDevice btDevice = null;
+                try {
+                    btDevice = bluetoothAdapter.getRemoteDevice(MAC);
+                } catch (Exception e) {
+                    Toast.makeText(context, "ERROR: unavailable MAC address.", Toast.LENGTH_SHORT).show();
+                }
 
                 // Create the socket.
                 try {
@@ -60,13 +69,6 @@ public class MyBTclass extends Thread {
                     bluetoothSocket.connect();
                 } catch (IOException e) {
                     Toast.makeText(context, "ERROR: connecting socket.", Toast.LENGTH_SHORT).show();
-                }
-                while (!bluetoothSocket.isConnected()) {
-                    try {
-                        bluetoothSocket.connect();
-                    } catch (IOException e) {
-                        Toast.makeText(context, "ERROR: connecting socket.", Toast.LENGTH_SHORT).show();
-                    }
                 }
 
                 // Get Streams to manage the communication.

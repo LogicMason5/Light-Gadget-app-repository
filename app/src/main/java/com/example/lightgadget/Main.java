@@ -28,6 +28,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.github.anastr.speedviewlib.Gauge;
@@ -67,7 +68,7 @@ import kotlin.jvm.functions.Function3;
 public class Main extends AppCompatActivity {
     TextView speedTv;
     RelativeLayout layout;
-    Button settings, add2, add3;
+    Button settings, add2, add3, powerOff;
     BubbleSeekBar numBar;
     SpeedView speedometer;
     SeekArc speedArc, brightArc;
@@ -144,84 +145,96 @@ public class Main extends AppCompatActivity {
         if (bt.getBTSocket() != null) {
             bt.write("0", getBaseContext());
             String answer = bt.read(getBaseContext());
-            bt.parseStrips(answer);
-            String[] stripsName = bt.getNames();
+            if (!answer.equals("")) {
+                bt.parseStrips(answer);
+                String[] stripsName = bt.getNames();
+                if (stripsName.length > 0) {
+                    // Create a strips selection bar.
+                    HorizontalScrollView sv = findViewById(R.id.scroll_bar);
+                    sv.setVisibility(View.VISIBLE);
 
-            if (stripsName.length > 0) {
-                // Create a strips selection bar.
-                HorizontalScrollView sv = findViewById(R.id.scroll_bar);
-                sv.setVisibility(View.VISIBLE);
-
-                // Create a LinearLayout element
-                LinearLayout linearLayout = new LinearLayout(this);
-                linearLayout.setOrientation(LinearLayout.HORIZONTAL);
-                linearLayout.setPadding(10 * dps, 0, 10 * dps, 0);
-                int cnt = -1;
-                int square_width = 40;
-                targets = new Boolean[stripsName.length];
-                for (String s : stripsName) {
-                    // Create a dedicated layout for each strip.
-                    LinearLayout strip_container = new LinearLayout(this);
-                    strip_container.setOrientation(LinearLayout.VERTICAL);
-
-                    // Add the lottie animation to the dedicated layout.
-                    LottieAnimationView lav = new LottieAnimationView(this);
-                    //            lav.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-                    lav.setLayoutParams(new RelativeLayout.LayoutParams(square_width * dps, square_width * dps));
-                    lav.setPadding(5 * dps, 2 * dps, 5 * dps, 0);
-                    lav.setProgress(minProgress);
-                    lav.setMinProgress(minProgress);
-                    lav.setAnimation(R.raw.lottie_light_bulb);
-                    lav.setId(++cnt);
-                    lav.setOnClickListener(new View.OnClickListener() {
+                    // Power off button.
+                    powerOff = findViewById(R.id.power_off);
+                    powerOff.setVisibility(View.VISIBLE);
+                    powerOff.setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void onClick(View v) {
-                            int currId = v.getId();
-                            LottieAnimationView curr_lav = findViewById(currId);
-                            targets[currId] = !targets[currId];
-                            String s = "";
-                            for (boolean b: targets) {
-                                s += b + ";";
+                        public void onClick(View view) {
+                            bt.write("X", getBaseContext());
+                            String answer = bt.read(getBaseContext());
+                        }
+                    });
+
+                    // Create a LinearLayout element
+                    LinearLayout linearLayout = new LinearLayout(this);
+                    linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+                    linearLayout.setPadding(10 * dps, 0, 10 * dps, 0);
+                    int cnt = -1;
+                    int square_width = 40;
+                    targets = new Boolean[stripsName.length];
+                    for (String s : stripsName) {
+                        // Create a dedicated layout for each strip.
+                        LinearLayout strip_container = new LinearLayout(this);
+                        strip_container.setOrientation(LinearLayout.VERTICAL);
+
+                        // Add the lottie animation to the dedicated layout.
+                        LottieAnimationView lav = new LottieAnimationView(this);
+                        //            lav.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                        lav.setLayoutParams(new RelativeLayout.LayoutParams(square_width * dps, square_width * dps));
+                        lav.setPadding(5 * dps, 2 * dps, 5 * dps, 0);
+                        lav.setProgress(minProgress);
+                        lav.setMinProgress(minProgress);
+                        lav.setAnimation(R.raw.lottie_light_bulb);
+                        lav.setId(++cnt);
+                        lav.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                int currId = v.getId();
+                                LottieAnimationView curr_lav = findViewById(currId);
+                                targets[currId] = !targets[currId];
+                                String s = "";
+                                for (boolean b: targets) {
+                                    s += b + ";";
+                                }
+                                Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
+                                if (targets[currId]) {
+                                    curr_lav.playAnimation();
+                                } else {
+                                    curr_lav.pauseAnimation();
+                                    curr_lav.setProgress(minProgress);
+                                }
                             }
-                            Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
-                            if (targets[currId]) {
-                                curr_lav.playAnimation();
-                            } else {
+                        });
+                        lav.setOnLongClickListener(new View.OnLongClickListener() {
+                            @Override
+                            public boolean onLongClick(View v) {
+                                int currId = v.getId();
+                                LottieAnimationView curr_lav = findViewById(currId);
+                                targets[currId] = true;
+                                bt.write(Integer.toString(currId)+";0", getBaseContext());
                                 curr_lav.pauseAnimation();
                                 curr_lav.setProgress(minProgress);
+                                return false;
                             }
-                        }
-                    });
-                    lav.setOnLongClickListener(new View.OnLongClickListener() {
-                        @Override
-                        public boolean onLongClick(View v) {
-                            int currId = v.getId();
-                            LottieAnimationView curr_lav = findViewById(currId);
-                            targets[currId] = true;
-                            bt.write(Integer.toString(currId)+";0", getBaseContext());
-                            curr_lav.pauseAnimation();
-                            curr_lav.setProgress(minProgress);
-                            return false;
-                        }
-                    });
+                        });
 
-                    // Add a textview to the dedicated layout.
-                    TextView tv = new TextView(this);
-                    tv.setText(s);
-                    tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-                    tv.setTextColor(getResources().getColor(R.color.lottie_yellow));
-                    tv.setGravity(Gravity.CENTER);
+                        // Add a textview to the dedicated layout.
+                        TextView tv = new TextView(this);
+                        tv.setText(s);
+                        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+                        tv.setTextColor(getResources().getColor(R.color.lottie_yellow));
+                        tv.setGravity(Gravity.CENTER);
 
-                    // Initialize the references array and add the dedicated layout to the main one.
-                    targets[cnt] = false;
-                    strip_container.addView(lav);
-                    strip_container.addView(tv);
-                    linearLayout.addView(strip_container);
+                        // Initialize the references array and add the dedicated layout to the main one.
+                        targets[cnt] = false;
+                        strip_container.addView(lav);
+                        strip_container.addView(tv);
+                        linearLayout.addView(strip_container);
+                    }
+
+                    // Add the LinearLayout element to the ScrollView
+                    sv.addView(linearLayout);
+                    linearLayout.setHorizontalScrollBarEnabled(true);
                 }
-
-                // Add the LinearLayout element to the ScrollView
-                sv.addView(linearLayout);
-                linearLayout.setHorizontalScrollBarEnabled(true);
             }
         }
 
@@ -459,11 +472,11 @@ public class Main extends AppCompatActivity {
 
         // Speedometer view.
         speedometer = findViewById(R.id.speed_view);
-        speedometer.makeSections(5, Color.CYAN, Style.BUTT);
+        speedometer.makeSections(5, ContextCompat.getColor(getBaseContext(), R.color.speed3), Style.BUTT);
         List<Section> sections = speedometer.getSections();
-        sections.get(0).setColor(Color.GREEN);
-        sections.get(1).setColor(Color.BLUE);
-        sections.get(2).setColor(Color.MAGENTA);
+        sections.get(0).setColor(ContextCompat.getColor(getBaseContext(), R.color.speed0));
+        sections.get(1).setColor(ContextCompat.getColor(getBaseContext(), R.color.speed1));
+        sections.get(2).setColor(ContextCompat.getColor(getBaseContext(), R.color.speed2));
         speedometer.setSpeedAt(0);
         speedometer.setTextColor(sections.get(0).getColor());
         speedometer.setOnSectionChangeListener(new Function2<Section, Section, Unit>() {
