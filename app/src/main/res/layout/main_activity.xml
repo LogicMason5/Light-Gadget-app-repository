@@ -26,12 +26,21 @@
 <!--        android:visibility="invisible"-->
 <!--        android:translationZ="1dp" />-->
 
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/settings"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:text="@string/void_text"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/setting"/>
+
     <HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/scroll_bar"
         android:layout_width="200dp"
         android:layout_marginTop="10dp"
         android:layout_toRightOf="@+id/settings"
-        android:layout_marginStart="25dp"
+        android:layout_marginStart="15dp"
         android:layout_height="70dp"
         android:background="@drawable/rounded_bar"
         android:paddingLeft="20dp"
@@ -40,23 +49,14 @@
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/power_off"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         android:text="@string/void_text"
         android:layout_toRightOf="@+id/scroll_bar"
-        android:layout_marginStart="25dp"
+        android:layout_marginStart="15dp"
         android:layout_marginTop="20dp"
         android:background="@drawable/power_button"
         android:visibility="invisible" />
-
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/settings"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:text="@string/void_text"
-        android:layout_marginTop="20dp"
-        android:layout_marginStart="20dp"
-        android:background="@drawable/setting"/>
 
     <com.triggertrap.seekarc.SeekArc
         android:id="@+id/bright"
