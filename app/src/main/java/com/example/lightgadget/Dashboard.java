@@ -186,7 +186,6 @@ public class Dashboard extends AppCompatActivity {
             String MAC = info.substring(info.length() - 17);
             logFeedback("Selected device: " + name);
             btConnected = bt.connect(getBaseContext(), bluetoothAdapter, MAC);
-            logFeedback("btConnected: " + btConnected);
             if (btConnected) {
                 logFeedback("Established connection to "+name);
 

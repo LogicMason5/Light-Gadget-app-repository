@@ -103,7 +103,7 @@ public class Main extends AppCompatActivity {
     float minProgress = 0.45F;
 
     // Wheel view icons.
-    final int[] items = {R.drawable.rand, R.drawable.rainbow, R.drawable.fire, R.drawable.water_wave, R.drawable.leaves, R.drawable.flamingo, R.drawable.police, R.drawable.color_ball, R.drawable.palm, R.drawable.sol};
+    final int[] items = {R.drawable.rainbow, R.drawable.color_ball, R.drawable.water_wave, R.drawable.leaves, R.drawable.fire, R.drawable.rand, R.drawable.flamingo, R.drawable.police};
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -260,13 +260,14 @@ public class Main extends AppCompatActivity {
         // Initialize the color picker setup.
         flagNum = 1;
         color1 = findViewById(R.id.color_sample1);
-        colorPicker.setColor(color1.getSolidColor());
+        color1.setColorFilter(colorPicker.getSolidColor());
+        colorPicker.setColor(color1.getColorFilter().hashCode());
         color1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 flagNum = 1;
-                colorPicker.setColor(color1.getSolidColor());
-                BTsend("X", "0;" + color1.getSolidColor());
+                colorPicker.setColor(color1.getColorFilter().hashCode());
+                BTsend("X", "0;" + color1.getColorFilter().hashCode());
             }
         });
 
@@ -275,8 +276,8 @@ public class Main extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 flagNum = 2;
-                colorPicker.setColor(color2.getSolidColor());
-                BTsend("X", "1;" + color2.getSolidColor());
+                colorPicker.setColor(color2.getColorFilter().hashCode());
+                BTsend("X", "1;" + color2.getColorFilter().hashCode());
             }
         });
         color2.setOnLongClickListener(new View.OnLongClickListener() {
@@ -293,7 +294,7 @@ public class Main extends AppCompatActivity {
                     BTsend("X", "N;1");
 
                     if (flagNum == 2) {
-                        colorPicker.setColor(color1.getSolidColor());
+                        colorPicker.setColor(color1.getColorFilter().hashCode());
                     }
                 }
                 return false;
@@ -305,8 +306,8 @@ public class Main extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 flagNum = 3;
-                colorPicker.setColor(color3.getSolidColor());
-                BTsend("X", "2;" + color3.getSolidColor());
+                colorPicker.setColor(color3.getColorFilter().hashCode());
+                BTsend("X", "2;" + color3.getColorFilter().hashCode());
             }
         });
         color3.setOnLongClickListener(new View.OnLongClickListener() {
@@ -320,7 +321,7 @@ public class Main extends AppCompatActivity {
                 BTsend("X", "N;2");
 
                 if (flagNum == 3) {
-                    colorPicker.setColor(color2.getSolidColor());
+                    colorPicker.setColor(color2.getColorFilter().hashCode());
                 }
                 return false;
             }
@@ -472,6 +473,8 @@ public class Main extends AppCompatActivity {
 
         // Speedometer view.
         speedometer = findViewById(R.id.speed_view);
+        freq = (int) Math.floor(speedArc.getProgress());
+        speedometer.setSpeedAt(freq);
         speedometer.makeSections(5, ContextCompat.getColor(getBaseContext(), R.color.speed3), Style.BUTT);
         List<Section> sections = speedometer.getSections();
         sections.get(0).setColor(ContextCompat.getColor(getBaseContext(), R.color.speed0));
