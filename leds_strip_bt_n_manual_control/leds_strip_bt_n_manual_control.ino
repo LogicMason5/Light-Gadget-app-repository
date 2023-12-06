@@ -2,6 +2,32 @@
 // https://github.com/FastLED/FastLED/wiki/Multiple-Controller-Examples
 
 
+// ~ · HERE BELOW THERE ARE SOME LINES TO CHANGE BRIGTHNES LED BY LED · ~
+// CRGB leds[NUM_STRIPS][LEDS_PER_STRIP];
+// void setup() {
+//   FastLED.addLeds<NEOPIXEL, 2>(leds[0], LEDS_PER_STRIP);
+//   FastLED.addLeds<NEOPIXEL, 3>(leds[1], LEDS_PER_STRIP);
+//   FastLED.addLeds<NEOPIXEL, 4>(leds[2], LEDS_PER_STRIP);
+// }
+// void loop() {
+//   // Set brightness for the first strip to 50
+//   setStripBrightness(0, 50);
+//   // Set brightness for the second strip to 100
+//   setStripBrightness(1, 100);
+//   // Set brightness for the third strip to 255 (full brightness)
+//   setStripBrightness(2, 255);
+//   // Your animation code goes here
+//   // ...
+//   // Show the changes
+//   FastLED.show();
+// }
+// void setStripBrightness(int stripIndex, uint8_t brightness) {
+//   for (int i = 0; i < LEDS_PER_STRIP; i++) {
+//     leds[stripIndex][i].fadeLightBy(brightness);
+//   }
+// }
+
+
 
 #include <FastLED.h>
 #include <arduino-timer.h>
@@ -63,8 +89,9 @@ int brght_mode = 0;
 int freq_mode = 0;
 
 // Initiliaze relative variables to control all the strips.
-int num = min(STRIP_LEN0, STRIP_LEN1); // It is like a % [0, 100], except when intialized.
-int last_num = num;
+const int lengths[N] = {STRIP_LEN0, STRIP_LEN1};
+const int max_len = max(lengths);
+int last_num = max_len;
 int freq = 100; // It should be greater than 10, because there is a delay in the main loop that interferes with the evaluation of the pushbutton clicks duration. [0, 100] ~ %
 float minFreq = 15;
 float maxFreq = 2000;
@@ -136,34 +163,31 @@ void setup() {
   currentBlending = LINEARBLEND;
 
   // Define default values for each strip.
-  og_nums[0] = STRIP_LEN0;
-  og_nums[1] = STRIP_LEN1;
-  nums[0] = num;
-  nums[1] = num;
   for (int i=0; i<N; i++) {
+    nums[i] = max_len;
     last_nums[i] = nums[i];
     brghts[i] = brght;
     Rs[i] = R;
     Gs[i] = G;
     Bs[i] = B;
+    palettes[i] = 0;
   }
   
+  // Finish setup feedback.
   all_off();
   delay(100);
-  
-  // Finish setup feedback.
   for (int i=0; i<3; i++) {
     leds0[i] = CRGB(traffic_light[i][0], traffic_light[i][1], traffic_light[i][2]);
     leds1[i] = CRGB(traffic_light[i][0], traffic_light[i][1], traffic_light[i][2]);
     FastLED.show();
-    delay(500);
+    delay(333);
   }
   Serial.println("Setup end.");
 
-  // Initialize the palettes after 'all_off' method, since it change it purposely.
-  for (int i=0; i<N; i++) {
-    palettes[i] = 0;
-  }
+  // // Initialize the palettes after 'all_off' method, since it change it purposely.
+  // for (int i=0; i<N; i++) {
+  //   palettes[i] = 0;
+  // }
 }
 
 void loop() {
@@ -241,16 +265,16 @@ void loop() {
           
           switch (num_mode) {
             case 0:
-              num = STRIP_LEN0/(STRIP_LEN0/2);
+              nums[0] = STRIP_LEN0/(STRIP_LEN0/2);
               break;
             case 1:
-              num = STRIP_LEN1/10;
+              nums[0] = STRIP_LEN1/10;
               break;
             case 2:
-              num = STRIP_LEN1/2;
+              nums[0] = STRIP_LEN1/2;
               break;
             case 3:
-              num = STRIP_LEN1;
+              nums[0] = STRIP_LEN1;
               break;
           }
 
@@ -285,7 +309,7 @@ void loop() {
         Serial.println("Double short click");
       }
       else if (tPressed > 70 && tPressed >= 800 && clicks_num == 2){ // Check if it is a double click of short click + long click.
-        num = 10;
+        nums[0] = 10;
         clicks_num = 0;
         brght_mode += 1;
         
@@ -331,7 +355,6 @@ void loop() {
     numChanged0();
     last_nums[0] = nums[0];
   }
-  FastLED.setBrightness(brghts[0]);
   FastLED.show();
 
   // 1
@@ -345,7 +368,6 @@ void loop() {
     numChanged1();
     last_nums[1] = nums[1];
   }
-  FastLED.setBrightness(brghts[1]);
   FastLED.show();
 
   FastLED.delay(1000 / freq);
@@ -405,9 +427,8 @@ void FillLEDsFromPaletteColors1(uint8_t colorIndex, uint8_t brightness) { // Fun
   }
 }
 
-void all_off() {
-  // Initilize LED strip OFF.
-  for (int i=0; i<num; i++) {
+void all_off() {  // Turn off all leds.
+  for (int i=0; i<max_len; i++) {
     leds0[i] = CRGB(0, 0, 0);
     leds1[i] = CRGB(0, 0, 0);
   }
