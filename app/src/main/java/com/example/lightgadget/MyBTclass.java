@@ -7,22 +7,15 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.os.Message;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.UUID;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
 
 public class MyBTclass extends Thread {
     static BluetoothSocket bluetoothSocket = null;
@@ -35,6 +28,8 @@ public class MyBTclass extends Thread {
     static int[] stripsNum;
     static String[] stripsName;
     static String log = ">> ... \n";
+
+    static String connected_MAC = null;
 
     // Connect to a specific MAC adress.
     public boolean connect(Context context, BluetoothAdapter bluetoothAdapter, String MAC) {
@@ -80,6 +75,7 @@ public class MyBTclass extends Thread {
                         Toast.makeText(context, "ERROR: getting Streams.", Toast.LENGTH_SHORT).show();
                     }
 
+                    connected_MAC = MAC;
                     return true;
                 }
                 else {
@@ -100,22 +96,23 @@ public class MyBTclass extends Thread {
     public boolean disconnect(Context context) {
         try {
             bluetoothSocket.close();
+            connected_MAC = null;
         } catch (IOException e) {
-            Toast.makeText(context, "ERROR: socket not closed.", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, "ERROR: socket not closed.", Toast.LENGTH_SHORT).show();
             return false;
         }
 
         try {
             bluetoothServerSocket.close();
         } catch (IOException e) {
-            Toast.makeText(context, "ERROR: server socket not closed.", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, "ERROR: server socket not closed.", Toast.LENGTH_SHORT).show();
             return false;
         }
 
         bluetoothSocket = null;
         bluetoothServerSocket = null;
 
-        Toast.makeText(context, "BT disconnected.", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(context, "BT disconnected.", Toast.LENGTH_SHORT).show();
 
         return true;
     }
@@ -130,15 +127,15 @@ public class MyBTclass extends Thread {
                     outputStream.write(input.getBytes());
                 }
                 catch (IOException e) {
-                    Toast.makeText(context, "ERROR: sending: " + input, Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(context, "ERROR: sending: " + input, Toast.LENGTH_SHORT).show();
                 }
             }
             else {
-                Toast.makeText(context, "ERROR: sending: socket is not connected.", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(context, "ERROR: sending: socket is not connected.", Toast.LENGTH_SHORT).show();
             }
         }
         else {
-            Toast.makeText(context, "ERROR: sending: socket is not defined.", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, "ERROR: sending: socket is not defined.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -158,16 +155,16 @@ public class MyBTclass extends Thread {
                         else readMessage += c;
                     }
                     catch (IOException e) {
-                        Toast.makeText(context, "ERROR: reading input stream.", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(context, "ERROR: reading input stream.", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
             else {
-                Toast.makeText(context, "ERROR: reading: socket is not connected.", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(context, "ERROR: reading: socket is not connected.", Toast.LENGTH_SHORT).show();
             }
         }
         else {
-            Toast.makeText(context, "ERROR: reading: socket is not defined.", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, "ERROR: reading: socket is not defined.", Toast.LENGTH_SHORT).show();
         }
         return readMessage;
     }
@@ -188,6 +185,10 @@ public class MyBTclass extends Thread {
     // Returns the current BT socket.
     public BluetoothSocket getBTSocket() {
         return bluetoothSocket;
+    }
+
+    public String getBTMAC() {
+        return connected_MAC;
     }
 
     // Returns the current strips names array.

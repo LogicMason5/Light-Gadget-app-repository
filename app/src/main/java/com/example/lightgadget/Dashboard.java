@@ -92,6 +92,7 @@ public class Dashboard extends AppCompatActivity {
         }
 
         // Buttons callbacks.
+        able_sending(false);
         sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -106,9 +107,6 @@ public class Dashboard extends AppCompatActivity {
             public void onClick(View view) {
                 refreshPairedDevices();
                 refreshBtn.startAnimation(refresh_rev);
-                if (bt.getBTSocket() != null) {
-                    bt.disconnect(getBaseContext());
-                }
             }
         });
 
@@ -147,6 +145,11 @@ public class Dashboard extends AppCompatActivity {
         finish();
     }
 
+    private void able_sending(Boolean b) {
+        sendBtn.setEnabled(b);
+        text2Send.setEnabled(b);
+    }
+
     // Function to refresh the paired devices.
     public void refreshPairedDevices() {
         refresh_counter += 1;
@@ -181,32 +184,40 @@ public class Dashboard extends AppCompatActivity {
             // Get MAC adress from device (last 17 characters of the item from the listView).
             String info = ((TextView) v).getText().toString();
             String name = info.substring(0, info.length() - 20);
-            Toast.makeText(getBaseContext(), "Connecting to " + name, Toast.LENGTH_SHORT).show();
-
             String MAC = info.substring(info.length() - 17);
             logFeedback("Selected device: " + name);
+
+            // Set selected device name bold in list.
+            if (lastTv != null) {
+                lastTv.setTypeface(null, Typeface.NORMAL);
+            }
+            lastTv = (TextView) v;
+            lastTv.setTypeface(null, Typeface.BOLD);
+
+            if (btConnected) {
+                bt.disconnect(getBaseContext());
+                logFeedback(lastTv.getText() + " disconnected.");
+            }  // Close any existing connection.
+            Toast.makeText(getBaseContext(), "Connecting to " + name, Toast.LENGTH_SHORT).show();
             btConnected = bt.connect(getBaseContext(), bluetoothAdapter, MAC);
             if (btConnected) {
-                logFeedback("Established connection to "+name);
-
-                // Set device name bold in list.
-                if (lastTv == null) {
-                    lastTv = (TextView) v;
-                    lastTv.setTypeface(null, Typeface.BOLD);
+                logFeedback("Established connection to " + name);
+                able_sending(true);
+                try {
+                    bt.write("0", getBaseContext());
+                    String answer = bt.read(getBaseContext());
+                    logFeedback("Received: " + answer);
+                    bt.parseStrips(answer);
                 }
-                else {
-                    lastTv.setTypeface(null, Typeface.NORMAL);
-                    lastTv = (TextView) v;
-                    lastTv.setTypeface(null, Typeface.BOLD);
+                catch (Exception e) {
+                    logFeedback("Exception: " + e);
+                    Toast.makeText(getBaseContext(), "Exception: " + e, Toast.LENGTH_SHORT).show();
                 }
-                bt.write("0", getBaseContext());
-                String answer = bt.read(getBaseContext());
-                logFeedback("Received: " + answer);
-                bt.parseStrips(answer);
-            }
-            else {
+            } else {
                 logFeedback("ERROR: connecting Bluetooth.");
-                Toast.makeText(getBaseContext(), "ERROR: connecting Bluetooth.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getBaseContext(), "Bluetooth connection not possible...", Toast.LENGTH_SHORT).show();
+                able_sending(false);
+                lastTv.setTypeface(null, Typeface.NORMAL);
             }
         }
     };
