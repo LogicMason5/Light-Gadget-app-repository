@@ -90,8 +90,9 @@ int freq_mode = 0;
 
 // Initiliaze relative variables to control all the strips.
 const int lengths[N] = {STRIP_LEN0, STRIP_LEN1};
-const int max_len = max(lengths);
-int last_num = max_len;
+const int max_len = max(STRIP_LEN0, STRIP_LEN1);
+int num = max_len;
+int last_num = num;
 int freq = 100; // It should be greater than 10, because there is a delay in the main loop that interferes with the evaluation of the pushbutton clicks duration. [0, 100] ~ %
 float minFreq = 15;
 float maxFreq = 2000;
@@ -117,27 +118,28 @@ TBlendType    currentBlending;
 // This function fills the palette with totally random colors.
 CRGBPalette16 SetupTotallyRandomPalette() {
   for(int i = 0; i < 16; ++i) {
-      currentPalette[i] = CHSV(random8(), 255, random8());
+      currentPalette[i] = CRGB(random(50, 250), random(50, 250), random(50, 250));
   }
-  return currentPalette; 
-}
-
-// This function sets up a palette of purple and green stripes.
-CRGBPalette16 SetupPurpleAndGreenPalette() {
-  CRGB purple = CHSV(HUE_PURPLE, 255, 255);
-  CRGB green  = CHSV(HUE_GREEN, 255, 255);
-  CRGB black  = CRGB::Black;
-  
-  currentPalette = CRGBPalette16(green,  green,  black,  black,
-                                 purple, purple, black,  black,
-                                 green,  green,  black,  black,
-                                 purple, purple, black,  black);
-
   return currentPalette;
 }
 
-#define N_palettes 5
-CRGBPalette16 currentPalettes[N_palettes] = {RainbowColors_p, PartyColors_p, OceanColors_p, ForestColors_p, LavaColors_p};
+const CRGBPalette16 MyPartyColors_p = { CRGB::Yellow, CRGB::Green, CRGB::Red, CRGB::Blue,
+                                        CRGB::Yellow, CRGB::Green, CRGB::Red, CRGB::Blue,
+                                        CRGB::Yellow, CRGB::Green, CRGB::Red, CRGB::Blue,
+                                        CRGB::Yellow, CRGB::Green, CRGB::Red, CRGB::Blue };
+
+const CRGBPalette16 FlamingoColors_p = { CRGB(170, 0, 170), CRGB(170, 0, 170), CRGB(200, 70, 100), CRGB(200, 70, 100),
+                                         CRGB(200, 70, 100), CRGB(200, 70, 100), CRGB(170, 0, 170), CRGB(170, 0, 170),
+                                         CRGB(200, 50, 155), CRGB(200, 50, 155), CRGB(200, 50, 155), CRGB(200, 50, 155),
+                                         CRGB(200, 50, 50), CRGB(200, 50, 50), CRGB(200, 70, 100), CRGB(200, 70, 100) };
+
+const CRGBPalette16 PoliceColors_p = { CRGB::Black, CRGB::Blue, CRGB::Gray, CRGB::Red,
+                                       CRGB::Black, CRGB::Blue, CRGB::Gray, CRGB::Red,
+                                       CRGB::Black, CRGB::Blue, CRGB::Gray, CRGB::Red,
+                                       CRGB::Black, CRGB::Blue, CRGB::Gray, CRGB::Red };
+
+#define N_palettes 7
+CRGBPalette16 currentPalettes[N_palettes] = {RainbowColors_p, MyPartyColors_p, OceanColors_p, ForestColors_p, LavaColors_p, FlamingoColors_p, PoliceColors_p};
 
 void setup() {
   Serial.begin(115200);
@@ -160,7 +162,7 @@ void setup() {
   FastLED.addLeds<LED_TYPE, PIN1, COLOR_ORDER>(leds1, STRIP_LEN1).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(brght);
   currentPalette = RainbowColors_p;
-  currentBlending = LINEARBLEND;
+  currentBlending = NOBLEND;
 
   // Define default values for each strip.
   for (int i=0; i<N; i++) {
@@ -243,7 +245,6 @@ void loop() {
               currentBlending = NOBLEND;
               break;
             case 2:
-              SetupPurpleAndGreenPalette();
               currentBlending = LINEARBLEND;
               break;
             case 3:
@@ -348,7 +349,7 @@ void loop() {
   static uint8_t startIndex0 = 0;
   startIndex0 += 1; /* motion speed */
   set_palette(palettes[0]); // Update currentPalette.
-  if (palettes[0] < N_palettes) {
+  if (palettes[0] < N_palettes+1) {
     FillLEDsFromPaletteColors0(startIndex0, brghts[0]);
   }
   if (nums[0] != last_nums[0]) {
@@ -361,7 +362,7 @@ void loop() {
   static uint8_t startIndex1 = 0;
   startIndex1 += 1; /* motion speed */
   set_palette(palettes[1]); // Update currentPalette.
-  if (palettes[1] < N_palettes) {
+  if (palettes[1] < N_palettes+1) {
     FillLEDsFromPaletteColors1(startIndex1, brghts[1]);
   }
   if (nums[1] != last_nums[1]) {
@@ -383,23 +384,12 @@ void loop() {
 //}
 
 void set_palette(int i) { // Update currentPalette.
-  if (0 <= i < N_palettes) {
+  if (i < N_palettes) {
     currentPalette = currentPalettes[i];
   }
   else {
-    switch (i) {
-      case N_palettes:
-        currentPalette = SetupTotallyRandomPalette();
-        break;
-      case N_palettes+1:
-        currentPalette = SetupPurpleAndGreenPalette();
-        break;
-      default:
-        // statements
-        break;
-    }
+    currentPalette = SetupTotallyRandomPalette();
   }
-
 }
 
 void numChanged0() { // Function to turn off the left over leds1 when the number is set to a lower one.
@@ -416,14 +406,14 @@ void numChanged1() { // Function to turn off the left over leds1 when the number
 void FillLEDsFromPaletteColors0(uint8_t colorIndex, uint8_t brightness) { // Function to set the proper colors to the leds.
   for(int i = 0; i < nums[0]; ++i) {
       leds0[i] = ColorFromPalette(currentPalette, colorIndex, brightness, currentBlending);
-      colorIndex += 3;
+      colorIndex += 5;
   }
 }
 
 void FillLEDsFromPaletteColors1(uint8_t colorIndex, uint8_t brightness) { // Function to set the proper colors to the leds.
   for(int i = 0; i < nums[1]; ++i) {
       leds1[i] = ColorFromPalette(currentPalette, colorIndex, brightness, currentBlending);
-      colorIndex += 3;
+      colorIndex += 51;
   }
 }
 

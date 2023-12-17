@@ -103,7 +103,7 @@ public class Main extends AppCompatActivity {
     float minProgress = 0.45F;
 
     // Wheel view icons.
-    final int[] items = {R.drawable.rainbow, R.drawable.color_ball, R.drawable.water_wave, R.drawable.leaves, R.drawable.fire, R.drawable.rand, R.drawable.flamingo, R.drawable.police};
+    final int[] items = {R.drawable.rainbow, R.drawable.color_ball, R.drawable.water_wave, R.drawable.leaves, R.drawable.fire, R.drawable.flamingo, R.drawable.police, R.drawable.rand};
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
